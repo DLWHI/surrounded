@@ -58,12 +58,12 @@ public class ModelFacade implements IPrivateModel {
             }
         }
 
+        field[game.getPlayerPos().getX()][game.getPlayerPos().getY()] = Entity.PLAYER;
+        field[game.getEscapePos().getX()][game.getEscapePos().getY()] = Entity.ESCAPE;
+
         for (Position enemy : game.getEnemyPosisions()) {
             field[enemy.getX()][enemy.getY()] = Entity.ENEMY;
         }
-
-        field[game.getPlayerPos().getX()][game.getPlayerPos().getY()] = Entity.PLAYER;
-        field[game.getEscapePos().getX()][game.getEscapePos().getY()] = Entity.ESCAPE;
 
         return field;
     }
@@ -75,10 +75,9 @@ public class ModelFacade implements IPrivateModel {
 
     @Override
     public void movePlayer(Position direction) {
-        // Vector2d pl = game.getPlayer();
-        // if (!game.isWallAt(pl.sum(direction))) {
-        //     pl.add(direction);
-        // }
+        Position pl = game.getPlayerPos();
+        pl.move(direction.getX(), direction.getY());
+        game.setPlayerPos(pl);
     }
 
     @Override
@@ -89,10 +88,10 @@ public class ModelFacade implements IPrivateModel {
         //         observer.notifyFinished("You won!");
         //     }
         // } else {
-        //     for (GameObserver observer : observers) {
-        //         observer.notifyChanged();
-        //     }
-        // }
+            // }
+        for (IGameObserver observer : observers) {
+            observer.notifyChanged();
+        }
     }
 
     @Override

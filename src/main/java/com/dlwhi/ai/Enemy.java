@@ -31,7 +31,7 @@ public class Enemy implements IGameObserver {
     }
 
     @Override
-    public void notifyPlayerMoved(Position dir) {
+    public void notifyChanged() {
         // Position neg = dir.negative();
         // if (pathToPlayer.contains(neg)) {
         //     pathToPlayer.remove(neg);

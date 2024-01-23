@@ -1,9 +1,7 @@
 package com.dlwhi.interfaces;
 
-import com.dlwhi.field.Position;
-
 public interface IGameObserver {
-    void notifyPlayerMoved(Position dir);
+    void notifyChanged();
 
     void notifyFinished(String message);
 }

@@ -5,11 +5,13 @@ import java.io.IOException;
 import java.util.Scanner;
 
 import com.dlwhi.application.Bindings;
-import com.dlwhi.field.Position;
 import com.dlwhi.interfaces.Entity;
 import com.dlwhi.interfaces.IController;
 import com.dlwhi.interfaces.IGameObserver;
 import com.dlwhi.interfaces.IPublicModel;
+
+import com.diogonunes.jcolor.Command;
+import com.diogonunes.jcolor.Ansi;
 
 public class ConsoleView implements IGameObserver, Closeable {
     private final Scanner input = new Scanner(System.in).useDelimiter("\\s*");
@@ -19,7 +21,7 @@ public class ConsoleView implements IGameObserver, Closeable {
     private final IController controller;
     private final IPublicModel model;
 
-    private boolean closed = false;
+    private boolean toClose = false;
 
     public ConsoleView(IController controller, IPublicModel model) {
         this.controller = controller;
@@ -28,6 +30,9 @@ public class ConsoleView implements IGameObserver, Closeable {
     }
 
     public void show() {
+        if (cfg.shouldClear()) {
+            System.out.println(Ansi.colorize(Command.CLEAR_SCREEN()));
+        }
         Entity[][] field = model.getField();
         for (int y = 0; y < field.length; y++) {
             for (int x = 0; x < field[y].length; x++) {
@@ -56,17 +61,19 @@ public class ConsoleView implements IGameObserver, Closeable {
         String command = binds.getCommand(input.next().toUpperCase());
         if (command == null) {
             System.err.println("Unknown key provided");
+        } else if ("exit".equals(command)) {
+            toClose = true;
         } else {
             controller.accept(command);
         }
     }
 
     public boolean shouldClose() {
-        return closed;
+        return toClose;
     }
 
     @Override
-    public void notifyPlayerMoved(Position dir) {
+    public void notifyChanged() {
         show();
     }
 
@@ -78,7 +85,7 @@ public class ConsoleView implements IGameObserver, Closeable {
 
     @Override
     public void close() throws IOException {
+        toClose = true;
         model.detachObserver(this);
-        closed = true;
     }
 }

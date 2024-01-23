@@ -35,27 +35,26 @@ public class Game implements IField{
     }
 
     public boolean setPlayerPos(Position pos) {
-        if (isFree(pos)) {
-            player.set(pos.getX(), pos.getY());
-            return true;
-        } else {
+        if (isWallAt(pos)) {
             return false;
         }
+        player.set(pos.getX(), pos.getY());
+        return true;
     }
 
     public boolean setEscapePos(Position pos) {
-        if (isFree(pos)) {
-            escape.set(pos.getX(), pos.getY());
-            return true;
-        } else {
+        if (isWallAt(pos)) {
             return false;
         }
+        escape.set(pos.getX(), pos.getY());
+        return true;
     }
     
     public void addEnemy(Position position) {
-        if (inBounds(position)) {
-            enemies.add(position);
+        if (isWallAt(position)) {
+            return;
         }
+        enemies.add(position);
     }
 
     @Override
