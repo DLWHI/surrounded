@@ -1,102 +1,47 @@
 package com.dlwhi.field;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
+import com.dlwhi.ai.Enemy;
+import com.dlwhi.interfaces.Entity;
 import com.dlwhi.interfaces.IField;
 
-public class Game implements IField{
-    private final Position size;
+public class Game {
+    private final IField game; 
+    private final Position player;
+    private final Position escape;
+    private final List<Enemy> ais;
 
-    private final Position player = new Position();
-    private final Position escape = new Position();
 
-    private final HashSet<Position> walls = new HashSet<>();
-    private final HashSet<Position> enemies = new HashSet<>();
-
-    public Game(Position size) {
-        this.size = size;
+    public Game(IField game, Position player, Position escape, List<Enemy> ais) {
+        this.game = game;
+        this.player = player;
+        this.escape = escape;
+        this.ais = ais;
     }
 
-    @Override
-    public Position getFieldSize() {
-        return size;
-    }
+    public Entity[][] getField() {
+        Position size = game.getFieldSize();
+        Entity[][] field = new Entity[size.getX()][size.getY()];
 
-    @Override
-    public Position getPlayerPos() {
-        return new Position(player.getX(), player.getY());
-    }
-
-    @Override
-    public Position getEscapePos() {
-        return new Position(escape.getX(), escape.getY());
-    }
-
-    public boolean setPlayerPos(Position pos) {
-        if (isWallAt(pos)) {
-            return false;
+        for (int x = 0; x < size.getX(); x++) {
+            for (int y = 0; y < size.getY(); y++) {
+                if (game.isWallAt(new Position(x, y))) {
+                    field[x][y] = Entity.WALL;
+                } else {
+                    field[x][y] = Entity.EMPTY;
+                }
+            }
         }
-        player.set(pos.getX(), pos.getY());
-        return true;
-    }
 
-    public boolean setEscapePos(Position pos) {
-        if (isWallAt(pos)) {
-            return false;
+        field[player.getX()][player.getY()] = Entity.PLAYER;
+        field[escape.getX()][escape.getY()] = Entity.ESCAPE;
+
+        for (Enemy enemy : ais) {
+            Position pos = enemy.getPosition();
+            field[pos.getX()][pos.getY()] = Entity.ENEMY;
         }
-        escape.set(pos.getX(), pos.getY());
-        return true;
-    }
-    
-    public void addEnemy(Position position) {
-        if (isWallAt(position)) {
-            return;
-        }
-        enemies.add(position);
-    }
 
-    @Override
-    public Set<Position> getEnemyPosisions() {
-        return Collections.unmodifiableSet(enemies);
-    } 
-
-    public void addWall(Position position) {
-        if (inBounds(position)) {
-            walls.add(position);
-        }
-    }
-
-    public void removeWall(Position position) {
-        if (inBounds(position)) {
-            walls.remove(position);
-        }
-        throw new IndexOutOfBoundsException("Cannot clear position out of field");
-    }
-
-    @Override
-    public boolean isFree(Position pos) {
-        return !isWallAt(pos)
-            && !player.equals(pos)
-            && !escape.equals(pos)
-            && !enemies.contains(pos);
-    }
-
-    @Override
-    public boolean isWallAt(Position position) {
-        if (inBounds(position)) {
-            return walls.contains(position);
-        } else {
-            return true;
-        }
-    }
-
-    @Override
-    public boolean inBounds(Position position) {
-        return 0 <= position.getX() && position.getX() < size.getX() &&
-                0 <= position.getY() && position.getY() < size.getY();
+        return field;
     }
 }
-
-

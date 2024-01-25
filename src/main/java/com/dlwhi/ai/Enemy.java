@@ -1,48 +1,49 @@
 package com.dlwhi.ai;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import com.dlwhi.field.Position;
-import com.dlwhi.interfaces.IGameObserver;
 
-public class Enemy implements IGameObserver {
-    private final List<Position> pathToPlayer = new LinkedList<>();
-    private final List<Position> pathToGoal = new LinkedList<>();
-    private Position position;
+public class Enemy {
+    private final FieldSearch gps;
+    private List<Position> pathToPlayer;
+    private List<Position> pathToGoal;
+    private final Position position = new Position();
 
-    public Enemy(Position start) {
-        position = start;
+    public Enemy(FieldSearch gps, Position start) {
+        this.gps = gps;
+        position.set(start.getX(), start.getY());
+    }
+
+    public void setPosition(Position pos) {
+        position.set(pos.getX(), pos.getY());
     }
 
     public void setTargets(Position player, Position goal) {
-        
+        pathToPlayer = gps.pathTo(position, player);
+        pathToGoal = gps.pathTo(position, goal);
     }
 
-    public Position getNextMove() {
+    public void move() {
+        Position move;
         if (pathToPlayer.size() < pathToGoal.size()) {
-            return pathToPlayer.get(pathToPlayer.size() - 1);
+            move = pathToPlayer.remove(pathToPlayer.size() - 1);
+        } else { 
+            move = pathToGoal.remove(pathToGoal.size() - 1);
         }
-        return pathToGoal.get(pathToGoal.size() - 1);
+        position.move(move.getX(), move.getY());
     }
 
     public Position getPosition() {
         return position;
     }
 
-    @Override
-    public void notifyChanged() {
-        // Position neg = dir.negative();
-        // if (pathToPlayer.contains(neg)) {
-        //     pathToPlayer.remove(neg);
-        // } else {
-        //     pathToPlayer.add(dir);
-        // }
-    }
-
-    @Override
-    public void notifyFinished(String message) {
-        pathToGoal.clear();
-        pathToPlayer.clear();
+    public void updatePlayerPosition(Position moveDir) {
+        Position opposite = new Position(-moveDir.getX(), -moveDir.getY());
+        if (pathToPlayer.contains(opposite)) {
+            pathToPlayer.remove(opposite);
+        } else {
+            pathToGoal.add(moveDir);
+        }
     }
 }

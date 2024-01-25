@@ -1,7 +1,10 @@
 package com.dlwhi.field;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
+import com.dlwhi.ai.Enemy;
 import com.dlwhi.ai.FieldSearch;
 
 public class GameGenerator {
@@ -10,9 +13,6 @@ public class GameGenerator {
     private int enemyCount;
 
     private Random random;
-    private Position escape;
-    private Position player;
-    private FieldSearch posGen;
 
     public GameGenerator(Position size, int wallCount, int enemyCount) {
         this.size = size;
@@ -20,29 +20,10 @@ public class GameGenerator {
         this.enemyCount = enemyCount;
     }
 
-    public Game generate() {
+    public Field generateField() {
         random = new Random();
-        boolean complete = false;
 
-        Game game = null;
-
-        while(!complete) {
-            game = new Game(size);
-            posGen = new FieldSearch(game);
-
-            generateWalls(game);
-    
-            generateEscape(game);
-    
-            complete = generatePlayer(game);
-
-            complete = generateEnemies(game);
-        }
-
-        return game;
-    }
-
-    private void generateWalls(Game field) {
+        Field field = new Field(size);
         for (int i = 0; i < wallCount; ) {
             Position pos = new Position(
                 random.nextInt(size.getX()),
@@ -53,35 +34,41 @@ public class GameGenerator {
                 ++i;
             }
         }
+
+        return field;
     }
 
-    private void generateEscape(Game field) {
-        escape = new Position();
+    public Position generateEscape(Field field) {
+        Position escape = new Position();
 
         do {
             escape.set(random.nextInt(size.getX()), random.nextInt(size.getY()));
-        } while (!field.setEscapePos(escape));
+        } while (field.isWallAt(escape));
+
+        return escape;
     }
 
-    private boolean generatePlayer(Game game) {
-        Position pos = posGen.generatePosition(escape);
-        if (pos.equals(escape)) {
-            return false;
+    public Position generatePlayer(Field game, Position pivot) {
+        FieldSearch posGen = new FieldSearch(game);
+        Position pos = posGen.generatePosition(pivot);
+        if (pos.equals(pivot)) {
+            // throw;
         }
-        player = pos;
-        game.setPlayerPos(pos);
-        return true;
+        return pos;
     }
 
-    private boolean generateEnemies(Game game) {
+    public List<Enemy> generateEnemies(Field game, Position pivot) {
+        FieldSearch posGen = new FieldSearch(game);
+        List<Enemy> enemies = new ArrayList<>(enemyCount);
         for (int i = 0; i < enemyCount; ++i) {
-            Position pos = posGen.generatePosition(player);
-            if (pos.equals(player)) {
-                return false;
-            }
-            game.addEnemy(pos);
+            Position pos = posGen.generatePosition(pivot);
+            Enemy enemy = new Enemy(posGen, pos);
+            enemies.add(enemy);
         }
-        return true;
+        if (!enemies.isEmpty() && pivot.equals(enemies.get(0).getPosition())) {
+            // throw;
+        }
+        return enemies;
     }
 }
 

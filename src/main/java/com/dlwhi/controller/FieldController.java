@@ -1,4 +1,4 @@
-package com.dlwhi.application;
+package com.dlwhi.controller;
 
 import java.util.HashMap;
 
@@ -27,12 +27,7 @@ public class FieldController implements IController {
             throw new IllegalCommandException(command);
         }
         model.movePlayer(dir);
-        model.update();
-    }
-
-    @Override
-    public void confirm() {
-        model.updateOneEnemy();
+        model.updateAll();
     }
 
     @Override
