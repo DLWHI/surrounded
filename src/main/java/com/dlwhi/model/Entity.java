@@ -1,4 +1,4 @@
-package com.dlwhi.interfaces;
+package com.dlwhi.model;
 
 public enum Entity {
     EMPTY,

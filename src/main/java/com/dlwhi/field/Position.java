@@ -37,6 +37,10 @@ public class Position {
         y += deltaY;
     }
 
+    public Position sum(Position other) {
+        return new Position(x + other.x, y + other.y);
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;

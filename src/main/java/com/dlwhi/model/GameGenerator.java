@@ -1,4 +1,4 @@
-package com.dlwhi.field;
+package com.dlwhi.model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,6 +6,8 @@ import java.util.Random;
 
 import com.dlwhi.ai.Enemy;
 import com.dlwhi.ai.FieldSearch;
+import com.dlwhi.field.Position;
+import com.dlwhi.field.WallField;
 
 public class GameGenerator {
     private final Position size;
@@ -20,10 +22,10 @@ public class GameGenerator {
         this.enemyCount = enemyCount;
     }
 
-    public Field generateField() {
+    public WallField generateField() {
         random = new Random();
 
-        Field field = new Field(size);
+        WallField field = new WallField(size);
         for (int i = 0; i < wallCount; ) {
             Position pos = new Position(
                 random.nextInt(size.getX()),
@@ -38,7 +40,7 @@ public class GameGenerator {
         return field;
     }
 
-    public Position generateEscape(Field field) {
+    public Position generateEscape(WallField field) {
         Position escape = new Position();
 
         do {
@@ -48,25 +50,17 @@ public class GameGenerator {
         return escape;
     }
 
-    public Position generatePlayer(Field game, Position pivot) {
-        FieldSearch posGen = new FieldSearch(game);
-        Position pos = posGen.generatePosition(pivot);
-        if (pos.equals(pivot)) {
-            // throw;
-        }
+    public Position generatePlayer(WallField game, Position pivot) {
+        Position pos = FieldSearch.generatePosition(game, pivot);
         return pos;
     }
 
-    public List<Enemy> generateEnemies(Field game, Position pivot) {
-        FieldSearch posGen = new FieldSearch(game);
+    public List<Enemy> generateEnemies(WallField game, Position pivot) {
         List<Enemy> enemies = new ArrayList<>(enemyCount);
         for (int i = 0; i < enemyCount; ++i) {
-            Position pos = posGen.generatePosition(pivot);
-            Enemy enemy = new Enemy(posGen, pos);
+            Position pos = FieldSearch.generatePosition(game, pivot);
+            Enemy enemy = new Enemy(new FieldSearch(game, pos), pos);
             enemies.add(enemy);
-        }
-        if (!enemies.isEmpty() && pivot.equals(enemies.get(0).getPosition())) {
-            // throw;
         }
         return enemies;
     }

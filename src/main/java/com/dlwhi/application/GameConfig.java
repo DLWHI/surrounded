@@ -1,4 +1,4 @@
-package com.dlwhi.view;
+package com.dlwhi.application;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +10,7 @@ import com.beust.jcommander.Parameters;
 import com.diogonunes.jcolor.Ansi;
 
 import com.dlwhi.config.ConfigValidator;
+import com.dlwhi.view.ColorParser;
 
 @Parameters(separators = "=")
 public class GameConfig {
@@ -21,9 +22,6 @@ public class GameConfig {
     private Map<String, String> colors = new HashMap<>();
     @DynamicParameter(names = "background.")
     private Map<String, String> backgrounds = new HashMap<>();
-
-    @Parameter(names = "confirmEnemyMoves", arity = 1)
-    private boolean confirmMoves = true;
 
     @Parameter(names = "clearFrame", arity = 1)
     private boolean clearFrame = true;

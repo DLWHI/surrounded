@@ -1,52 +1,46 @@
 package com.dlwhi.model;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import com.dlwhi.field.Game;
 import com.dlwhi.field.Position;
-import com.dlwhi.interfaces.Entity;
-import com.dlwhi.interfaces.IGameFactory;
-import com.dlwhi.interfaces.IGameObserver;
-import com.dlwhi.interfaces.IPrivateModel;
 
-public class ModelFacade implements IPrivateModel {
-    private final Set<IGameObserver> observers = new HashSet<>();
-    private final IGameFactory provider;
+public class ModelFacade implements GameModel {
+    private final GameFactory provider;
     private Game game;
+    private int currentMove;
 
-    public ModelFacade(IGameFactory gameProvider) {
+    public ModelFacade(GameFactory gameProvider) {
         provider = gameProvider;
         game = provider.factoryMethod();
-    }
-
-    @Override
-    public void attachObserver(IGameObserver obs) {
-        observers.add(obs);
-    }
-    
-    @Override
-    public void detachObserver(IGameObserver obs) {
-        observers.remove(obs);
+        currentMove = game.enemyCount();
     }
 
     @Override
     public Entity[][] getField() {
         return game.getField();
     }
+
     @Override
     public void movePlayer(Position direction) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'movePlayer'");
+        currentMove = 0;
+        if (game.makePlayerMove(direction)) {
+            // for (; currentMove < game.enemyCount(); ++currentMove) {
+            //     game.makeEnemyMove(currentMove);
+            // }
+        }
     }
+
     @Override
-    public void updateOne() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'updateOne'");
+    public GameStatus status() {
+        if (game.playerEscaped()) {
+            return GameStatus.PLAYER_WON;
+        } else if (game.playerCatched()) {
+            return GameStatus.ENEMY_WON;
+        }
+        return GameStatus.ONGOING;
     }
+
     @Override
-    public void updateAll() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'updateAll'");
+    public void restart() {
+        game = null;
+        game = provider.factoryMethod();
     }
 }

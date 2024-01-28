@@ -1,19 +1,22 @@
 package com.dlwhi.config;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.dlwhi.ai.Enemy;
 import com.dlwhi.exceptions.IllegalParametersException;
-import com.dlwhi.field.Field;
-import com.dlwhi.field.Game;
-import com.dlwhi.field.GameGenerator;
+import com.dlwhi.field.WallField;
+import com.dlwhi.model.Entity;
+import com.dlwhi.model.Game;
+import com.dlwhi.model.GameFactory;
+import com.dlwhi.model.GameGenerator;
 import com.dlwhi.field.Position;
-import com.dlwhi.interfaces.IGameFactory;
 
 @Parameters(separators = "=")
-public class GameBuilder implements IGameFactory {
+public class GameBuilder implements GameFactory {
     @Parameter(names = {"--enemiesCount"})
     private int enemyCount;
     @Parameter(names = {"--wallsCount"})
@@ -33,21 +36,38 @@ public class GameBuilder implements IGameFactory {
         );
         Game game = null;
 
-        try {
-            for (; game == null;) {
-                Field field = gen.generateField();
-                Position escape = gen.generateEscape(field);
-                Position player = gen.generatePlayer(field, escape);
-                List<Enemy> enemies = gen.generateEnemies(field, player);
+        for (; game == null;) {
+            WallField field = gen.generateField();
+            Position escape = gen.generateEscape(field);
+            Position player = gen.generatePlayer(field, escape);
+            List<Enemy> enemies = gen.generateEnemies(field, player);
 
-                game = new Game(field, escape, player, enemies); 
+            for (Enemy enemy : enemies) {
+                enemy.setTargets(player, escape);
             }
-        } catch (Exception e) {
-            // TODO: handle exception
+
+            game = new Game(field, player, escape, enemies); 
+
+            if (!checkIntegrity(game)) {
+                game = null;
+            }
         }
 
         return game;
     }
+
+    public boolean checkIntegrity(Game game) {
+        Entity[][] field = game.getField();
+        Set<Entity> entityList = new HashSet<>();
+
+        for (Entity[] fieldRow : field) {
+            for (Entity entity : fieldRow) {
+                entityList.add(entity);
+            }
+        }
+
+        return entityList.size() == 5;
+    } 
 
     @Override
     public Game factoryMethod() {

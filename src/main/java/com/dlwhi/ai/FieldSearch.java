@@ -1,69 +1,67 @@
 package com.dlwhi.ai;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.Random;
 import java.util.Queue;
 
+import com.dlwhi.field.Field;
 import com.dlwhi.field.Position;
-import com.dlwhi.interfaces.IField;
 
 public class FieldSearch {
-    private final IField field;
-    private final Position fieldSize;
-    private final Random random = new Random();
+    private final Field field;
 
-    public FieldSearch(IField game) {
+    private final HashMap<Position, Integer> distanceCache = new HashMap<>();
+    private Position position;
+
+    public FieldSearch(Field game, Position start) {
         field = game;
-        fieldSize = game.getFieldSize();
+        position = start;
+        markLenghts(position);
     }
 
-    public List<Position> pathTo(Position from, Position to) {
+    private void markLenghts(Position from) {
         Queue<Position> queue = new ArrayDeque<>();
-        HashMap<Position, Integer> dist = new HashMap<>();
 
         queue.add(from);
 
-        while (!queue.isEmpty() && dist.getOrDefault(to, 0) == 0) {
+        while (!queue.isEmpty()) {
             Position current = queue.remove();
             for (Position direction : Position.DIRECTIONS) {
                 Position pos = new Position(current.getX(), current.getY());
                 pos.move(direction.getX(), direction.getY());
 
-                if (field.isFree(pos) && dist.getOrDefault(pos, 0) == 0) {
-                    dist.put(pos, dist.getOrDefault(current, 0) + 1);
+                if (field.isFree(pos) && distanceCache.getOrDefault(pos, 0) == 0) {
+                    distanceCache.put(pos, distanceCache.getOrDefault(current, 0) + 1);
                     queue.add(pos);
                 }
             }
         }
-        return backtrack(dist, to);
     }
 
-    private List<Position> backtrack(Map<Position, Integer> chain, Position start) {
-        List<Position> path = new ArrayList<>(chain.get(start));
-        int level = chain.get(start);
+    public Queue<Position> pathTo(Position dest) {
+        Queue<Position> path = new ArrayDeque<>(distanceCache.get(dest));
+        int level = distanceCache.get(dest);
+        Position pos = new Position(dest.getX(), dest.getY());
 
         for (; level != 0; --level) {
             for (Position direction : Position.DIRECTIONS) {
-                Position pos = new Position(start.getX(), start.getY());
-                pos.move(direction.getX(), direction.getY());
                 
-                if (chain.getOrDefault(pos, -1) + 1 == level) {
-                    path.add(direction);
-                    start = pos;
+                if (distanceCache.getOrDefault(pos.sum(direction), -1) + 1 == level) {
+                    path.add(new Position(-direction.getX(), -direction.getY()));
+                    break;
                 }
             }
         }
         return path;
     }
 
-    public Position generatePosition(Position start) {
+    static public Position generatePosition(Field field, Position start) {
+        Position fieldSize = field.getFieldSize();
+        Random random = new Random();
         Stack<Position> queue = new Stack<>();
         Position last = start;
         Set<Position> visited = new HashSet<>();
