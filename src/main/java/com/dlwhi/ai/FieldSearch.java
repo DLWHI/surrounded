@@ -1,57 +1,66 @@
 package com.dlwhi.ai;
 
 import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 import java.util.Random;
-import java.util.Queue;
 
-import com.dlwhi.field.Field;
-import com.dlwhi.field.Position;
+import com.dlwhi.model.Field;
+import com.dlwhi.model.Position;
 
 public class FieldSearch {
     private final Field field;
 
-    private final HashMap<Position, Integer> distanceCache = new HashMap<>();
-    private Position position;
+    private Position lastStart;
+    private Queue<Position> queue;
 
-    public FieldSearch(Field game, Position start) {
+    private HashMap<Position, Integer> distanceCache = new HashMap<>();
+
+    public FieldSearch(Field game) {
         field = game;
-        position = start;
-        markLenghts(position);
     }
 
-    private void markLenghts(Position from) {
-        Queue<Position> queue = new ArrayDeque<>();
+    public Deque<Position> pathTo(Position from, Position to) {
+        if (from.equals(lastStart) && distanceCache.getOrDefault(to, 0) != 0) {
+            return backtrack(to);
+        }
+        if (!from.equals(lastStart)) {
+            queue = new ArrayDeque<>();
+        }
 
         queue.add(from);
 
-        while (!queue.isEmpty()) {
+        while (distanceCache.getOrDefault(to, 0) == 0 && !queue.isEmpty()) {
             Position current = queue.remove();
             for (Position direction : Position.DIRECTIONS) {
-                Position pos = new Position(current.getX(), current.getY());
-                pos.move(direction.getX(), direction.getY());
-
-                if (field.isFree(pos) && distanceCache.getOrDefault(pos, 0) == 0) {
+                Position pos = current.sum(direction);
+                if (!field.isFree(pos)) {
+                    distanceCache.put(pos, -1);
+                }
+                if (pos.equals(to) || !distanceCache.containsKey(pos)) {
                     distanceCache.put(pos, distanceCache.getOrDefault(current, 0) + 1);
                     queue.add(pos);
                 }
             }
         }
+        lastStart = from;
+        return backtrack(to);
     }
 
-    public Queue<Position> pathTo(Position dest) {
-        Queue<Position> path = new ArrayDeque<>(distanceCache.get(dest));
-        int level = distanceCache.get(dest);
-        Position pos = new Position(dest.getX(), dest.getY());
+    private Deque<Position> backtrack(Position start) {
+        Deque<Position> path = new ArrayDeque<>(distanceCache.get(start));
+        int level = distanceCache.get(start);
+        Position pos = new Position(start.getX(), start.getY());
 
         for (; level != 0; --level) {
             for (Position direction : Position.DIRECTIONS) {
-                
-                if (distanceCache.getOrDefault(pos.sum(direction), -1) + 1 == level) {
-                    path.add(new Position(-direction.getX(), -direction.getY()));
+                if (distanceCache.getOrDefault(pos.sum(direction), 0) == level - 1) {
+                    path.addFirst(new Position(-direction.getX(), -direction.getY()));
+                    pos = pos.sum(direction);
                     break;
                 }
             }
@@ -73,8 +82,7 @@ public class FieldSearch {
         while (!queue.isEmpty() && prob < random.nextFloat()) {
             Position current = queue.pop();
             for (Position direction : Position.DIRECTIONS) {
-                Position pos = new Position(current.getX(), current.getY());
-                pos.move(direction.getX(), direction.getY());
+                Position pos = current.sum(direction);;
 
                 if (field.isFree(pos) && !visited.contains(pos)) {
                     queue.add(pos);

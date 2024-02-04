@@ -1,14 +1,14 @@
 package com.dlwhi.config;
 
-import com.dlwhi.application.Bindings;
-import com.dlwhi.application.GameConfig;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
+import com.dlwhi.view.Bindings;
+import com.dlwhi.view.ViewConfig;
 
 @Parameters(separators = "=")
 public class ConfigLoader {
-    private final GameConfig targetConfig = GameConfig.get();
+    private final ViewConfig targetConfig = ViewConfig.get();
     private final Bindings bindsConfig = Bindings.get();
 
     @Parameter(names = "--profile")

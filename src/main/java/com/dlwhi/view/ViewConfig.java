@@ -1,4 +1,4 @@
-package com.dlwhi.application;
+package com.dlwhi.view;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -10,11 +10,11 @@ import com.beust.jcommander.Parameters;
 import com.diogonunes.jcolor.Ansi;
 
 import com.dlwhi.config.ConfigValidator;
-import com.dlwhi.view.ColorParser;
+import com.dlwhi.model.Entity;
 
 @Parameters(separators = "=")
-public class GameConfig {
-    private static GameConfig instance;
+public class ViewConfig {
+    private static ViewConfig instance;
 
     @DynamicParameter(names = "char.", validateWith = ConfigValidator.class)
     private Map<String, String> chars = new HashMap<>();
@@ -26,7 +26,7 @@ public class GameConfig {
     @Parameter(names = "clearFrame", arity = 1)
     private boolean clearFrame = true;
 
-    private GameConfig() {
+    private ViewConfig() {
         chars.put("enemy", "X");
         chars.put("player", "O");
         chars.put("wall", "▧");
@@ -34,18 +34,19 @@ public class GameConfig {
         chars.put("empty", " ");
     }
 
-    public static GameConfig get() {
+    public static ViewConfig get() {
         if (instance == null) {
-            instance = new GameConfig();
+            instance = new ViewConfig();
         }
         return instance;
     }
 
-    public String getOutputFor(String entity) {
+    public String getOutputFor(Entity entity) {
+        String entityName = entity.toString();
         return Ansi.colorize(
-            chars.get(entity),
-            ColorParser.mapText(colors.getOrDefault(entity, "white")),
-            ColorParser.mapBack(backgrounds.getOrDefault(entity, "black"))
+            chars.get(entityName),
+            ColorParser.mapText(colors.getOrDefault(entityName, "white")),
+            ColorParser.mapBack(backgrounds.getOrDefault(entityName, "black"))
         );
     }
 

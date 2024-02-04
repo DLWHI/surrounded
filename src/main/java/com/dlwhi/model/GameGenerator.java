@@ -1,13 +1,10 @@
 package com.dlwhi.model;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Random;
 
 import com.dlwhi.ai.Enemy;
 import com.dlwhi.ai.FieldSearch;
-import com.dlwhi.field.Position;
-import com.dlwhi.field.WallField;
+import com.dlwhi.exceptions.RegenerationException;
 
 public class GameGenerator {
     private final Position size;
@@ -22,47 +19,62 @@ public class GameGenerator {
         this.enemyCount = enemyCount;
     }
 
-    public WallField generateField() {
+    private void generateWalls(Game field) {
         random = new Random();
-
-        WallField field = new WallField(size);
-        for (int i = 0; i < wallCount; ) {
+        for (int i = 0; i < wallCount;) {
             Position pos = new Position(
-                random.nextInt(size.getX()),
-                random.nextInt(size.getY())
-            );
-            if (field.isFree(pos)) {
-                field.addWall(pos);
+                    random.nextInt(size.getX()),
+                    random.nextInt(size.getY()));
+            if (field.addWall(pos)) {
                 ++i;
             }
         }
-
-        return field;
     }
 
-    public Position generateEscape(WallField field) {
-        Position escape = new Position();
-
-        do {
-            escape.set(random.nextInt(size.getX()), random.nextInt(size.getY()));
-        } while (field.isWallAt(escape));
-
-        return escape;
+    private void generateEscape(Game field) {
+        while (!field.setEscapePos(new Position(random.nextInt(size.getX()), random.nextInt(size.getY()))))
+            ;
     }
 
-    public Position generatePlayer(WallField game, Position pivot) {
-        Position pos = FieldSearch.generatePosition(game, pivot);
-        return pos;
-    }
-
-    public List<Enemy> generateEnemies(WallField game, Position pivot) {
-        List<Enemy> enemies = new ArrayList<>(enemyCount);
-        for (int i = 0; i < enemyCount; ++i) {
-            Position pos = FieldSearch.generatePosition(game, pivot);
-            Enemy enemy = new Enemy(new FieldSearch(game, pos), pos);
-            enemies.add(enemy);
+    private void generatePlayer(Game field, Position pivot) {
+        Position pos = FieldSearch.generatePosition(field, pivot);
+        if (pos.equals(pivot)) {
+            throw new RegenerationException();
         }
-        return enemies;
+        field.setPlayerPos(pos);
+    }
+
+    private void generateEnemies(Game field, Position pivot) {
+        FieldSearch navigator = new FieldSearch(field);
+        for (int i = 0; i < enemyCount; ++i) {
+            Position pos = FieldSearch.generatePosition(field, pivot);
+            if (pos.equals(pivot)) {
+                throw new RegenerationException();
+            }
+            field.addEnemy(new Enemy(navigator, pos));
+        }
+    }
+
+    public Game create() {
+        Game game = null;
+        while (game == null) {
+            try {
+                game = new Game(size);
+                game.addWall(new Position(0, 1));
+                game.addWall(new Position(1, 1));
+                game.addWall(new Position(2, 1));
+                game.addWall(new Position(3, 1));
+                game.addEnemy(new Enemy(new FieldSearch(game), new Position(0, 2)));
+                game.setPlayerPos(new Position());
+                game.setEscapePos(new Position(0, size.getY() - 1));
+                // generateWalls(game);
+                // generateEscape(game);
+                // generatePlayer(game, game.getEscapePos());
+                // generateEnemies(game, game.getPlayerPos());
+            } catch (RegenerationException e) {
+                game = null;
+            }
+        }
+        return game;
     }
 }
-

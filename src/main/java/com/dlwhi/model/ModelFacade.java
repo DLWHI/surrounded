@@ -1,46 +1,85 @@
 package com.dlwhi.model;
 
-import com.dlwhi.field.Position;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
-public class ModelFacade implements GameModel {
-    private final GameFactory provider;
+import com.dlwhi.ai.Enemy;
+import com.dlwhi.observer.GameObserver;
+
+public class ModelFacade implements GameModelPrivate {
+    private final GameGenerator generator;
     private Game game;
-    private int currentMove;
 
-    public ModelFacade(GameFactory gameProvider) {
-        provider = gameProvider;
-        game = provider.factoryMethod();
-        currentMove = game.enemyCount();
+    private final Set<GameObserver> observers = new HashSet<>();
+
+    public ModelFacade(GameGenerator gameProvider) {
+        generator = gameProvider;
+        game = generator.create();
     }
 
     @Override
     public Entity[][] getField() {
-        return game.getField();
+        Entity[][] fieldArray = game.getFieldSize().makeArray(new Entity[0][0]);
+
+        for (Entity[] row : fieldArray) {
+            Arrays.fill(row, Entity.EMPTY);
+        }
+
+        for (Position wall : game.getWallsPos()) {
+            wall.putToArray(fieldArray, Entity.WALL);
+        }
+
+        game.getPlayerPos().putToArray(fieldArray, Entity.PLAYER);
+        game.getEscapePos().putToArray(fieldArray, Entity.ESCAPE);
+
+        for (Enemy enemy : game.getEnemies()) {
+            enemy.getPosition().putToArray(fieldArray, Entity.ENEMY);
+        }
+
+        return fieldArray;
     }
 
     @Override
     public void movePlayer(Position direction) {
-        currentMove = 0;
-        if (game.makePlayerMove(direction)) {
-            // for (; currentMove < game.enemyCount(); ++currentMove) {
-            //     game.makeEnemyMove(currentMove);
+        Position newPos = game.getPlayerPos().sum(direction);
+        if (newPos.equals(game.getEscapePos())) {
+            for (GameObserver observer : observers) {
+                observer.notifyVictory();
+            }
+        } else if (game.setPlayerPos(newPos)) {
+            // for (Enemy enemy : game.getEnemies()) {
+            //     game.updateEnemy(enemy);
             // }
+            for (GameObserver observer : observers) {
+                observer.notifyChanged();
+            }
         }
     }
 
     @Override
-    public GameStatus status() {
-        if (game.playerEscaped()) {
-            return GameStatus.PLAYER_WON;
-        } else if (game.playerCatched()) {
-            return GameStatus.ENEMY_WON;
+    public void fortfeit() {
+        for (GameObserver observer : observers) {
+            observer.notifyLoss();
         }
-        return GameStatus.ONGOING;
     }
 
     @Override
     public void restart() {
         game = null;
-        game = provider.factoryMethod();
+        game = generator.create();
+        for (GameObserver observer : observers) {
+            observer.notifyChanged();
+        }
+    }
+
+    @Override
+    public void attachObserver(GameObserver obs) {
+        observers.add(obs);
+    }
+
+    @Override
+    public void detachObserver(GameObserver obs) {
+        observers.remove(obs);
     }
 }

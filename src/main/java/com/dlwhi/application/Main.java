@@ -1,10 +1,10 @@
 package com.dlwhi.application;
 
-import com.dlwhi.config.AppBuilder;
+import com.dlwhi.config.AppContext;
 
 public class Main {
     public static void main(String[] args) {
-        try (AppPresenter game = AppBuilder.build(args)) {
+        try (App game = AppContext.getApp(args)) {
             game.run();
         } catch (Exception e) {
             System.err.println("Dies of cringe");

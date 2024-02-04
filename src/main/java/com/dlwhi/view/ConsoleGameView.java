@@ -3,46 +3,73 @@ package com.dlwhi.view;
 import java.io.IOException;
 import java.util.Scanner;
 
-import com.dlwhi.application.Bindings;
+import com.dlwhi.application.App;
+import com.dlwhi.controller.Controller;
+import com.dlwhi.model.Entity;
+import com.dlwhi.model.GameModelPublic;
+import com.dlwhi.observer.GameObserver;
 import com.diogonunes.jcolor.Command;
 import com.diogonunes.jcolor.Ansi;
 
-public class ConsoleGameView implements GameView {
+public class ConsoleGameView implements App, GameObserver {
+    private final Controller controller;
+    private final GameModelPublic model;
+
     private final Scanner input = new Scanner(System.in).useDelimiter("\\s*");
     private final Bindings binds = Bindings.get();
+    private final ViewConfig cfg = ViewConfig.get();
 
     private boolean toClose = false;
 
-    @Override
-    public void show(String data) {
-        System.out.println(data);
+    public ConsoleGameView(Controller controller, GameModelPublic model) {
+        this.controller = controller;
+        this.model = model;
+
+        model.attachObserver(this);
+    }
+
+    public void showField() {
+        if (cfg.shouldClear()) {
+            clear();
+        }
+        Entity[][] field = model.getField();
+        for (Entity[] fieldRow : field) {
+            for (Entity entity : fieldRow) {
+                System.out.print(cfg.getOutputFor(entity));
+            }
+            System.out.println();
+        }
+    }
+
+    public void showEnd(String message) {
+        System.out.println(message);
+        System.out.println("Retry?");
+        if (requestConfirm()) {
+            controller.reset();
+        } else {
+            toClose = true;
+        }
     }
 
     public void clear() {
         System.out.println(Ansi.colorize(Command.CLEAR_SCREEN()));
     }
 
-    @Override
-    public String waitInput() throws IOException {
-        while (true) {
-            String command = binds.getCommand(input.next().toUpperCase());
-            if (command != null) {
-                if ("exit".equals(command)) {
-                    toClose = true;
-                }
-                return command;
-            }
+    public void waitInput() {
+        String command = binds.getCommand(input.next().toUpperCase());
+        if (command == null) {
             System.out.println("Unknown key provided");
+        } else if ("exit".equals(command)) {
+            toClose = true;
+        } else {
+            controller.accept(command);
         }
     }
 
-    @Override
     public boolean shouldClose() {
         return toClose;
     }
 
-
-    @Override
     public boolean requestConfirm() {
         while (true) {
             String command = binds.getCommand(input.next().toUpperCase());
@@ -58,5 +85,30 @@ public class ConsoleGameView implements GameView {
     @Override
     public void close() throws IOException {
         toClose = true;
+        model.detachObserver(this);
+    }
+
+    @Override
+    public void run() {
+        showField();
+        while (!toClose) {
+            waitInput();            
+        }
+    }
+
+    @Override
+    public void notifyChanged() {
+        showField();
+        model.attachObserver(this);
+    }
+
+    @Override
+    public void notifyLoss() {
+        showEnd("You lost.");
+    }
+
+    @Override
+    public void notifyVictory() {
+        showEnd("You escaped.");
     }
 }

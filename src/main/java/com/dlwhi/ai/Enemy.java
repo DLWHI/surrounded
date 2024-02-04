@@ -1,33 +1,33 @@
 package com.dlwhi.ai;
 
-import java.util.Queue;
+import java.util.Deque;
 
-import com.dlwhi.field.Position;
+import com.dlwhi.model.Position;
 
 public class Enemy {
     private final FieldSearch gps;
-    private Queue<Position> pathToPlayer;
-    private Queue<Position> pathToGoal;
-    private final Position position = new Position();
+    private Deque<Position> pathToPlayer;
+    private Deque<Position> pathToGoal;
+    private Position position;
 
     public Enemy(FieldSearch gps, Position start) {
         this.gps = gps;
-        position.set(start.getX(), start.getY());
+        position = start;
     }
 
     public void setTargets(Position player, Position goal) {
-        pathToPlayer = gps.pathTo(player);
-        pathToGoal = gps.pathTo(goal);
+        pathToPlayer = gps.pathTo(position, player);
+        pathToGoal = gps.pathTo(position, goal);
     }
 
     public void move() {
         Position move;
-        if (pathToPlayer.size() < pathToGoal.size()) {
-            move = pathToPlayer.poll();
-        } else {
-            move = pathToGoal.poll();
-        }
-        position.move(move.getX(), move.getY());
+        // if (pathToPlayer.size() < pathToGoal.size()) {
+            move = pathToPlayer.removeFirst();
+        // } else {
+        //     move = pathToGoal.poll();
+        // }
+        position = position.sum(move);
     }
 
     public Position getPosition() {

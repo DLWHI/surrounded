@@ -1,4 +1,4 @@
-package com.dlwhi.field;
+package com.dlwhi.model;
 
 public interface Field {
     public Position getFieldSize();

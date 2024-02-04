@@ -1,80 +1,111 @@
 package com.dlwhi.model;
 
-import java.util.List;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import com.dlwhi.ai.Enemy;
-import com.dlwhi.field.Position;
-import com.dlwhi.field.WallField;
 
-public class Game {
-    private final WallField field; 
-    private final Position player;
-    private final Position escape;
-    private final List<Enemy> ais;
+public class Game implements Field {
+    private final HashSet<Position> walls = new HashSet<>();
+    private Position player = new Position();
+    private Position escape = new Position();
+    private final HashSet<Enemy> enemies = new HashSet<>();
+    private final Position size;
 
-    private boolean catched = false;
-
-
-    public Game(WallField field, Position player, Position escape, List<Enemy> ais) {
-        this.field = field;
-        this.player = player;
-        this.escape = escape;
-        this.ais = ais;
+    public Game(Position size) {
+        this.size = size;
     }
 
-    public Entity[][] getField() {
-        Position size = field.getFieldSize();
-        Entity[][] fieldArray = new Entity[size.getY()][size.getX()];
-
-        for (int y = 0; y < size.getY(); y++) {
-            for (int x = 0; x < size.getX(); x++) {
-                if (field.isWallAt(new Position(x, y))) {
-                    fieldArray[y][x] = Entity.WALL;
-                } else {
-                    fieldArray[y][x] = Entity.EMPTY;
-                }
-            }
-        }
-
-        fieldArray[player.getY()][player.getX()] = Entity.PLAYER;
-        fieldArray[escape.getY()][escape.getX()] = Entity.ESCAPE;
-
-        for (Enemy enemy : ais) {
-            Position pos = enemy.getPosition();
-            fieldArray[pos.getY()][pos.getX()] = Entity.ENEMY;
-        }
-
-        return fieldArray;
-    }
-
-    public boolean makePlayerMove(Position dir) {
-        Position newPos = player.sum(dir);
-        if (field.isFree(newPos)) {
-            player.set(newPos.getX(), newPos.getY());
-            for (Enemy enemy : ais) {
-                enemy.updatePlayerPosition(dir);
-            }
+    public boolean setEscapePos(Position position) {
+        if (isFree(position)) {
+            escape = position;
             return true;
         }
         return false;
     }
 
-    public void makeEnemyMove(int enemyIndex) {
-        ais.get(enemyIndex).move();
-        if (player.equals(ais.get(enemyIndex).getPosition())) {
-            catched = true;
+    public boolean setPlayerPos(Position position) {
+        if (isFree(position)) {
+            player = position;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean addEnemy(Enemy enemy) {
+        if (isFree(enemy.getPosition())) {
+            enemy.setTargets(player, escape);
+            enemies.add(enemy);
+            return true;
+        }
+        return false;
+    }
+
+    public void removeEnemy(Enemy enemy) {
+        enemies.remove(enemy);
+    }
+
+    public boolean addWall(Position position) {
+        if (isFree(position)) {
+            walls.add(position);
+            return true;
+        }
+        return false;
+    }
+
+    public void removeWall(Position position) {
+        walls.remove(position);
+    }
+
+    public Position getPlayerPos() {
+        return player;
+    }
+
+    public Position getEscapePos() {
+        return escape;
+    }
+
+    public Set<Position> getWallsPos() {
+        return Collections.unmodifiableSet(walls);
+    }
+
+    public Set<Enemy> getEnemies() {
+        return Collections.unmodifiableSet(enemies);
+    }
+
+    public void updateEnemy(Enemy enemy) {
+        if (enemies.contains(enemy)) {
+            enemy.move();
         }
     }
 
-    public boolean playerEscaped() {
-        return player.equals(escape);
+    public boolean isEnemyAt(Position position) {
+        for (Enemy enemy : enemies) {
+            if (enemy.getPosition().equals(position)) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    public boolean playerCatched() {
-        return catched;
+    @Override
+    public Position getFieldSize() {
+        return size;
     }
 
-    public int enemyCount() {
-        return ais.size();
+    @Override
+    public boolean isFree(Position pos) {
+        return inBounds(pos) 
+            && !walls.contains(pos)
+            && !player.equals(pos)
+            && !escape.equals(pos)
+            && !isEnemyAt(pos);
+    }
+
+    @Override
+    public boolean inBounds(Position pos) {
+        return 0 <= pos.getX() && pos.getX() < size.getX() &&
+                0 <= pos.getY() && pos.getY() < size.getY();
     }
 }
