@@ -4,18 +4,20 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.dlwhi.ai.Enemy;
+import com.dlwhi.ai.EnemyMovementSystem;
 import com.dlwhi.observer.GameObserver;
 
 public class ModelFacade implements GameModelPrivate {
     private final GameGenerator generator;
     private Game game;
+    private final EnemyMovementSystem ems = new EnemyMovementSystem();
 
     private final Set<GameObserver> observers = new HashSet<>();
 
     public ModelFacade(GameGenerator gameProvider) {
         generator = gameProvider;
         game = generator.create();
+        ems.cacheField(game);
     }
 
     @Override
@@ -33,8 +35,8 @@ public class ModelFacade implements GameModelPrivate {
         game.getPlayerPos().putToArray(fieldArray, Entity.PLAYER);
         game.getEscapePos().putToArray(fieldArray, Entity.ESCAPE);
 
-        for (Enemy enemy : game.getEnemies()) {
-            enemy.getPosition().putToArray(fieldArray, Entity.ENEMY);
+        for (Position enemy : game.getEnemyPositions()) {
+            enemy.putToArray(fieldArray, Entity.ENEMY);
         }
 
         return fieldArray;
@@ -48,9 +50,11 @@ public class ModelFacade implements GameModelPrivate {
                 observer.notifyVictory();
             }
         } else if (game.setPlayerPos(newPos)) {
-            // for (Enemy enemy : game.getEnemies()) {
-            //     game.updateEnemy(enemy);
-            // }
+            Set<Position> updatedEnemyPos = new HashSet<>();
+            for (Position enemy : game.getEnemyPositions()) {
+                updatedEnemyPos.add(ems.getNextPosition(game, enemy));
+            }
+            game.updateEnemies(updatedEnemyPos);
             for (GameObserver observer : observers) {
                 observer.notifyChanged();
             }
@@ -68,6 +72,7 @@ public class ModelFacade implements GameModelPrivate {
     public void restart() {
         game = null;
         game = generator.create();
+        ems.cacheField(game);
         for (GameObserver observer : observers) {
             observer.notifyChanged();
         }

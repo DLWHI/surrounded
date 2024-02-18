@@ -4,13 +4,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.dlwhi.ai.Enemy;
-
-public class Game implements Field {
+public class Game {
     private final HashSet<Position> walls = new HashSet<>();
     private Position player = new Position();
     private Position escape = new Position();
-    private final HashSet<Enemy> enemies = new HashSet<>();
+    private final HashSet<Position> enemies = new HashSet<>();
     private final Position size;
 
     public Game(Position size) {
@@ -18,40 +16,40 @@ public class Game implements Field {
     }
 
     public boolean setEscapePos(Position position) {
-        if (isFree(position)) {
-            escape = position;
-            return true;
+        if (isObstacleAt(position)) {
+            return false;
         }
-        return false;
+        escape = position;
+        return true;
     }
 
     public boolean setPlayerPos(Position position) {
-        if (isFree(position)) {
-            player = position;
-            return true;
+        if (isEntityAt(position)) {
+            return false;
         }
-        return false;
+        player = position;
+        player = new Position();
+        return true;
     }
 
-    public boolean addEnemy(Enemy enemy) {
-        if (isFree(enemy.getPosition())) {
-            enemy.setTargets(player, escape);
-            enemies.add(enemy);
-            return true;
+    public boolean addEnemy(Position position) {
+        if (isEntityAt(position)) {
+            return false;
         }
-        return false;
+        enemies.add(position);
+        return true;
     }
 
-    public void removeEnemy(Enemy enemy) {
-        enemies.remove(enemy);
+    public void removeEnemy(Position position) {
+        enemies.remove(position);
     }
 
     public boolean addWall(Position position) {
-        if (isFree(position)) {
-            walls.add(position);
-            return true;
+        if (isObstacleAt(position)) {
+            return false;
         }
-        return false;
+        walls.add(position);
+        return true;
     }
 
     public void removeWall(Position position) {
@@ -70,40 +68,35 @@ public class Game implements Field {
         return Collections.unmodifiableSet(walls);
     }
 
-    public Set<Enemy> getEnemies() {
+    public Set<Position> getEnemyPositions() {
         return Collections.unmodifiableSet(enemies);
     }
 
-    public void updateEnemy(Enemy enemy) {
-        if (enemies.contains(enemy)) {
-            enemy.move();
-        }
-    }
-
-    public boolean isEnemyAt(Position position) {
-        for (Enemy enemy : enemies) {
-            if (enemy.getPosition().equals(position)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
     public Position getFieldSize() {
         return size;
     }
 
-    @Override
-    public boolean isFree(Position pos) {
-        return inBounds(pos) 
-            && !walls.contains(pos)
-            && !player.equals(pos)
-            && !escape.equals(pos)
-            && !isEnemyAt(pos);
+    public void updateEnemies(Set<Position> updatedPos) {
+        enemies.clear();
+        for (Position position : updatedPos) {
+            if (!isEntityAt(position)) {
+                enemies.add(position);
+            }
+        }
     }
 
-    @Override
+    public boolean isObstacleAt(Position pos) {
+        return !inBounds(pos) || walls.contains(pos) || escape.equals(pos);
+    }
+
+    public boolean isEntityAt(Position pos) {
+        return enemies.contains(pos) || player.equals(pos);
+    }
+
+    public boolean isFree(Position pos) {
+        return !isObstacleAt(pos) && !isEntityAt(pos);
+    }
+
     public boolean inBounds(Position pos) {
         return 0 <= pos.getX() && pos.getX() < size.getX() &&
                 0 <= pos.getY() && pos.getY() < size.getY();

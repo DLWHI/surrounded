@@ -2,7 +2,6 @@ package com.dlwhi.model;
 
 import java.util.Random;
 
-import com.dlwhi.ai.Enemy;
 import com.dlwhi.ai.FieldSearch;
 import com.dlwhi.exceptions.RegenerationException;
 
@@ -45,13 +44,12 @@ public class GameGenerator {
     }
 
     private void generateEnemies(Game field, Position pivot) {
-        FieldSearch navigator = new FieldSearch(field);
         for (int i = 0; i < enemyCount; ++i) {
             Position pos = FieldSearch.generatePosition(field, pivot);
             if (pos.equals(pivot)) {
                 throw new RegenerationException();
             }
-            field.addEnemy(new Enemy(navigator, pos));
+            field.addEnemy(pos);
         }
     }
 
@@ -60,17 +58,17 @@ public class GameGenerator {
         while (game == null) {
             try {
                 game = new Game(size);
-                game.addWall(new Position(0, 1));
-                game.addWall(new Position(1, 1));
-                game.addWall(new Position(2, 1));
-                game.addWall(new Position(3, 1));
-                game.addEnemy(new Enemy(new FieldSearch(game), new Position(0, 2)));
-                game.setPlayerPos(new Position());
-                game.setEscapePos(new Position(0, size.getY() - 1));
-                // generateWalls(game);
-                // generateEscape(game);
-                // generatePlayer(game, game.getEscapePos());
-                // generateEnemies(game, game.getPlayerPos());
+                // game.addWall(new Position(0, 1));
+                // game.addWall(new Position(1, 1));
+                // game.addWall(new Position(2, 1));
+                // game.addWall(new Position(3, 1));
+                // game.addEnemy(new Position(0, 2));
+                // game.setPlayerPos(new Position());
+                // game.setEscapePos(new Position(0, size.getY() - 1));
+                generateWalls(game);
+                generateEscape(game);
+                generatePlayer(game, game.getEscapePos());
+                generateEnemies(game, game.getPlayerPos());
             } catch (RegenerationException e) {
                 game = null;
             }
