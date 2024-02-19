@@ -8,13 +8,13 @@ import com.dlwhi.ai.EnemyMovementSystem;
 import com.dlwhi.observer.GameObserver;
 
 public class ModelFacade implements GameModelPrivate {
-    private final GameGenerator generator;
-    private Game game;
+    private final FieldGenerator generator;
+    private Field game;
     private final EnemyMovementSystem ems = new EnemyMovementSystem();
 
     private final Set<GameObserver> observers = new HashSet<>();
 
-    public ModelFacade(GameGenerator gameProvider) {
+    public ModelFacade(FieldGenerator gameProvider) {
         generator = gameProvider;
         game = generator.create();
         ems.cacheField(game);

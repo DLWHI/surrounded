@@ -7,7 +7,7 @@ import com.dlwhi.model.ModelFacade;
 import com.dlwhi.view.ConsoleGameView;
 
 public class AppContext {
-    private static final GameConfigurator gameBuilder = new GameConfigurator();
+    private static final FieldConfigurator gameBuilder = new FieldConfigurator();
     private static final ConfigLoader cfgLoader = new ConfigLoader();
 
     public static App getApp(String[] args) {

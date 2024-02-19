@@ -5,20 +5,20 @@ import java.util.Random;
 import com.dlwhi.ai.FieldSearch;
 import com.dlwhi.exceptions.RegenerationException;
 
-public class GameGenerator {
+public class FieldGenerator {
     private final Position size;
     private int wallCount;
     private int enemyCount;
 
     private Random random;
 
-    public GameGenerator(Position size, int wallCount, int enemyCount) {
+    public FieldGenerator(Position size, int wallCount, int enemyCount) {
         this.size = size;
         this.wallCount = wallCount;
         this.enemyCount = enemyCount;
     }
 
-    private void generateWalls(Game field) {
+    private void generateWalls(Field field) {
         random = new Random();
         for (int i = 0; i < wallCount;) {
             Position pos = new Position(
@@ -30,12 +30,12 @@ public class GameGenerator {
         }
     }
 
-    private void generateEscape(Game field) {
+    private void generateEscape(Field field) {
         while (!field.setEscapePos(new Position(random.nextInt(size.getX()), random.nextInt(size.getY()))))
             ;
     }
 
-    private void generatePlayer(Game field, Position pivot) {
+    private void generatePlayer(Field field, Position pivot) {
         Position pos = FieldSearch.generatePosition(field, pivot);
         if (pos.equals(pivot)) {
             throw new RegenerationException();
@@ -43,7 +43,7 @@ public class GameGenerator {
         field.setPlayerPos(pos);
     }
 
-    private void generateEnemies(Game field, Position pivot) {
+    private void generateEnemies(Field field, Position pivot) {
         for (int i = 0; i < enemyCount; ++i) {
             Position pos = FieldSearch.generatePosition(field, pivot);
             if (pos.equals(pivot)) {
@@ -53,11 +53,11 @@ public class GameGenerator {
         }
     }
 
-    public Game create() {
-        Game game = null;
+    public Field create() {
+        Field game = null;
         while (game == null) {
             try {
-                game = new Game(size);
+                game = new Field(size);
                 // game.addWall(new Position(0, 1));
                 // game.addWall(new Position(1, 1));
                 // game.addWall(new Position(2, 1));

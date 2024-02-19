@@ -8,16 +8,16 @@ import java.util.Set;
 import java.util.Stack;
 import java.util.Random;
 
-import com.dlwhi.model.Game;
+import com.dlwhi.model.Field;
 import com.dlwhi.model.Position;
 
 public class FieldSearch {
-    private final Game field;
+    private final Field field;
     private final Position position;
 
     private final HashMap<Position, Integer> distanceCache = new HashMap<>();
 
-    public FieldSearch(Game game, Position start) {
+    public FieldSearch(Field game, Position start) {
         field = game;
         position = start;
         distanceCache.put(position, 0);
@@ -67,7 +67,7 @@ public class FieldSearch {
         return position;
     }
 
-    static public Position generatePosition(Game field, Position start) {
+    static public Position generatePosition(Field field, Position start) {
         Position fieldSize = field.getFieldSize();
         Random random = new Random();
         Stack<Position> queue = new Stack<>();

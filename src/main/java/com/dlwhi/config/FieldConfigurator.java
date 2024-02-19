@@ -3,11 +3,11 @@ package com.dlwhi.config;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.Parameters;
 import com.dlwhi.exceptions.IllegalParametersException;
-import com.dlwhi.model.GameGenerator;
+import com.dlwhi.model.FieldGenerator;
 import com.dlwhi.model.Position;
 
 @Parameters(separators = "=")
-public class GameConfigurator {
+public class FieldConfigurator {
     @Parameter(names = {"--enemiesCount"})
     private int enemyCount;
     @Parameter(names = {"--wallsCount"})
@@ -15,12 +15,12 @@ public class GameConfigurator {
     @Parameter(names = {"--size"})
     private int fieldSize;
 
-    public GameGenerator getGenerator() {
+    public FieldGenerator getGenerator() {
         if (fieldSize * fieldSize * 0.3 <= enemyCount + wallCount) {
             throw new IllegalParametersException();
         }
 
-        return new GameGenerator(
+        return new FieldGenerator(
             new Position(fieldSize, fieldSize),
             wallCount,
             enemyCount

@@ -4,14 +4,14 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class Game {
+public class Field {
     private final HashSet<Position> walls = new HashSet<>();
     private Position player = new Position();
     private Position escape = new Position();
     private final HashSet<Position> enemies = new HashSet<>();
     private final Position size;
 
-    public Game(Position size) {
+    public Field(Position size) {
         this.size = size;
     }
 

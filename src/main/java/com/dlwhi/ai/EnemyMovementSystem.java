@@ -1,13 +1,13 @@
 package com.dlwhi.ai;
 
-import com.dlwhi.model.Game;
+import com.dlwhi.model.Field;
 import com.dlwhi.model.Position;
 
 public class EnemyMovementSystem {
-    private Game cachedGame;
+    private Field cachedGame;
     private FieldSearch gpsToEscape;
 
-    public Position getDirection(Game game, Position current) {
+    public Position getDirection(Field game, Position current) {
         if (cachedGame != game) {
             cacheField(game);
         }
@@ -18,7 +18,7 @@ public class EnemyMovementSystem {
         return gps.directionFrom(current);
     }
 
-    public void cacheField(Game game) {
+    public void cacheField(Field game) {
         gpsToEscape = new FieldSearch(game, game.getEscapePos());
         cachedGame = game;
     }
