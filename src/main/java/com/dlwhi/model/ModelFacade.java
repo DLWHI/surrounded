@@ -31,7 +31,7 @@ public class ModelFacade implements GameModelPrivate {
         for (Position wall : game.getWallsPos()) {
             wall.putToArray(fieldArray, Entity.WALL);
         }
-
+        
         game.getPlayerPos().putToArray(fieldArray, Entity.PLAYER);
         game.getEscapePos().putToArray(fieldArray, Entity.ESCAPE);
 
@@ -45,20 +45,52 @@ public class ModelFacade implements GameModelPrivate {
     @Override
     public void movePlayer(Position direction) {
         Position newPos = game.getPlayerPos().sum(direction);
-        if (newPos.equals(game.getEscapePos())) {
+        if (!game.isWallAt(newPos)) {
+            game.setPlayerPos(newPos);
+            update();
+        }
+    }
+
+    private void update() {
+        Set<Position> updatedEnemyPos = new HashSet<>();
+        for (Position enemy : game.getEnemyPositions()) {
+            Position newPos = enemy.sum(ems.getDirection(game, enemy));
+            if (game.isFree(newPos)) {
+                updatedEnemyPos.add(newPos);
+            } else {
+                updatedEnemyPos.add(enemy);
+            }
+        }
+        game.updateEnemies(updatedEnemyPos);
+
+        for (GameObserver observer : observers) {
+            observer.notifyChanged();
+        }
+
+        Position player = game.getPlayerPos();
+        Position escape = game.getEscapePos();
+        if (player.equals(escape)) {
             for (GameObserver observer : observers) {
                 observer.notifyVictory();
             }
-        } else if (game.setPlayerPos(newPos)) {
-            Set<Position> updatedEnemyPos = new HashSet<>();
-            for (Position enemy : game.getEnemyPositions()) {
-                updatedEnemyPos.add(ems.getNextPosition(game, enemy));
-            }
-            game.updateEnemies(updatedEnemyPos);
+        } else if (playerCatched(player)) {
             for (GameObserver observer : observers) {
-                observer.notifyChanged();
+                observer.notifyLoss();
             }
         }
+    }
+
+    private boolean playerCatched(Position pos) {
+        Set<Position> enemies = game.getEnemyPositions();
+        if (enemies.contains(pos)) {
+            return true;
+        }
+        for (Position dir : Position.DIRECTIONS) {
+            if (enemies.contains(pos.sum(dir))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

@@ -28,7 +28,6 @@ public class Game {
             return false;
         }
         player = position;
-        player = new Position();
         return true;
     }
 
@@ -85,8 +84,12 @@ public class Game {
         }
     }
 
+    public boolean isWallAt(Position pos) {
+        return !inBounds(pos) || walls.contains(pos);
+    }
+
     public boolean isObstacleAt(Position pos) {
-        return !inBounds(pos) || walls.contains(pos) || escape.equals(pos);
+        return isWallAt(pos) || escape.equals(pos);
     }
 
     public boolean isEntityAt(Position pos) {

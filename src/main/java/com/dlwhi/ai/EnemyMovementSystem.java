@@ -7,7 +7,7 @@ public class EnemyMovementSystem {
     private Game cachedGame;
     private FieldSearch gpsToEscape;
 
-    public Position getNextPosition(Game game, Position current) {
+    public Position getDirection(Game game, Position current) {
         if (cachedGame != game) {
             cacheField(game);
         }
@@ -15,7 +15,7 @@ public class EnemyMovementSystem {
         if (gps.distanceTo(current) > gpsToEscape.distanceTo(current)) {
             gps = gpsToEscape;
         }
-        return current.sum(gps.directionFrom(current));
+        return gps.directionFrom(current);
     }
 
     public void cacheField(Game game) {

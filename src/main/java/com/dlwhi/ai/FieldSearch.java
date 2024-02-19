@@ -53,7 +53,7 @@ public class FieldSearch {
                 return dir;
             }
         }
-        return null;
+        return new Position();  // null object pattern
     }
 
     public int distanceTo(Position position) {
