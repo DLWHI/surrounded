@@ -29,9 +29,9 @@ public class ViewConfig {
     private ViewConfig() {
         chars.put("enemy", "X");
         chars.put("player", "O");
-        chars.put("wall", "▧");
-        chars.put("goal", "□");
-        chars.put("empty", " ");
+        chars.put("wall", "#");
+        chars.put("escape", "o");
+        chars.put("empty", "-");
     }
 
     public static ViewConfig get() {
